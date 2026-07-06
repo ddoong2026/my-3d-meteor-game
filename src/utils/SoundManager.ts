@@ -125,42 +125,53 @@ export class SoundManager {
     osc.stop(this.ctx.currentTime + 0.05);
   }
 
+  ambientOscs: OscillatorNode[] = [];
+
   playTenseBGM() {
     if (!this.ctx) return;
     if (this.isPlayingBgm) return;
     this.isPlayingBgm = true;
 
-    // Create a continuous oscillating siren for tense BGM
-    this.bgmOsc = this.ctx.createOscillator();
+    // Create a soft, space-like ambient drone using a minor chord
+    // Frequencies for a low ambient pad (e.g., A minor: A2, C3, E3)
+    const frequencies = [110.00, 130.81, 164.81];
+    
     this.bgmGain = this.ctx.createGain();
-    
-    // An LFO to modulate the frequency (creates a siren/tense effect)
-    const lfo = this.ctx.createOscillator();
-    const lfoGain = this.ctx.createGain();
-
-    lfo.type = 'sine';
-    lfo.frequency.value = 2.5; // 2.5 Hz modulation
-    
-    // Siren pitch range
-    lfoGain.gain.value = 40; // +/- 40 Hz
-    this.bgmOsc.frequency.value = 200; // Base 200 Hz (very audible)
-    
-    lfo.connect(lfoGain);
-    lfoGain.connect(this.bgmOsc.frequency);
-    
-    this.bgmOsc.type = 'sawtooth';
-    
-    this.bgmOsc.connect(this.bgmGain);
-    this.bgmGain.connect(this.ctx.destination);
-    
     this.bgmGain.gain.setValueAtTime(0, this.ctx.currentTime);
-    this.bgmGain.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 1); // Fade in
-    
-    this.bgmOsc.start();
-    lfo.start();
+    // Very low volume to not be too loud
+    this.bgmGain.gain.linearRampToValueAtTime(0.015, this.ctx.currentTime + 3);
 
-    // Store LFO so we can stop it later
-    (this.bgmOsc as any).lfo = lfo;
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 400; // Muffled, underwater/space sound
+
+    // LFO for filter modulation (slow breathing effect)
+    const filterLfo = this.ctx.createOscillator();
+    const filterLfoGain = this.ctx.createGain();
+    filterLfo.type = 'sine';
+    filterLfo.frequency.value = 0.1; // 10 second cycle
+    filterLfoGain.gain.value = 100;
+    filterLfo.connect(filterLfoGain);
+    filterLfoGain.connect(filter.frequency);
+    filterLfo.start();
+
+    filter.connect(this.bgmGain);
+    this.bgmGain.connect(this.ctx.destination);
+
+    this.ambientOscs = frequencies.map(freq => {
+      const osc = this.ctx!.createOscillator();
+      osc.type = 'sine'; // Softest waveform
+      osc.frequency.value = freq;
+      
+      // Slight detuning for chorus effect
+      osc.detune.value = (Math.random() - 0.5) * 10;
+      
+      osc.connect(filter);
+      osc.start();
+      return osc;
+    });
+
+    (this.bgmGain as any).filterLfo = filterLfo;
   }
 
   stopBGM() {
@@ -168,18 +179,19 @@ export class SoundManager {
     if (this.bgmGain && this.ctx) {
       this.bgmGain.gain.cancelScheduledValues(this.ctx.currentTime);
       this.bgmGain.gain.setValueAtTime(this.bgmGain.gain.value, this.ctx.currentTime);
-      this.bgmGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.5);
+      this.bgmGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 1);
     }
-    if (this.bgmOsc && this.ctx) {
-      const osc = this.bgmOsc;
-      const lfo = (osc as any).lfo;
-      osc.stop(this.ctx.currentTime + 0.5);
-      if (lfo) lfo.stop(this.ctx.currentTime + 0.5);
-      this.bgmOsc = null;
-    }
-    if (this.bgmInterval) {
-      clearInterval(this.bgmInterval);
-      this.bgmInterval = null;
+    
+    if (this.ctx) {
+      const timeToStop = this.ctx.currentTime + 1;
+      this.ambientOscs.forEach(osc => {
+        osc.stop(timeToStop);
+      });
+      this.ambientOscs = [];
+      
+      if (this.bgmGain && (this.bgmGain as any).filterLfo) {
+        (this.bgmGain as any).filterLfo.stop(timeToStop);
+      }
     }
   }
 }

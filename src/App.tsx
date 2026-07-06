@@ -242,7 +242,7 @@ function PlayerModel({ playerPosRef, gameOverRef }: any) {
     }
 
     if (innerGroup.current) {
-      innerGroup.current.rotation.x = -flipAngle.current
+      innerGroup.current.rotation.x = flipAngle.current
     }
 
     velocity.current.y += gravity
@@ -390,7 +390,7 @@ function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
     }
 
     if (innerMesh.current) {
-      innerMesh.current.rotation.x = -flipAngle.current
+      innerMesh.current.rotation.x = flipAngle.current
     }
 
     velocity.current.y += gravity
@@ -437,39 +437,29 @@ function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
 // 메인 App 컴포넌트
 // ==========================================
 export default function App() {
-  const [isGameOver, setIsGameOver] = useState(false)
+  const [gameState, setGameState] = useState<'start' | 'playing' | 'gameover'>('start')
   const [gameKey, setGameKey] = useState(0) // 게임 재시작을 위한 키
   
-  const gameOverRef = useRef(false)
+  const gameOverRef = useRef(true)
   const scoreRef = useRef(0)
   const playerPosRef = useRef(new THREE.Vector3())
   const scoreDomRef = useRef<HTMLDivElement>(null)
 
+  const handleStart = () => {
+    setGameState('playing')
+    gameOverRef.current = false
+    soundManager.init()
+    soundManager.playTenseBGM()
+  }
+
   const handleRestart = () => {
-    setIsGameOver(false)
+    setGameState('playing')
     gameOverRef.current = false
     scoreRef.current = 0
     setGameKey(k => k + 1)
     soundManager.init()
     soundManager.playTenseBGM()
   }
-
-  useEffect(() => {
-    const initSound = () => {
-      soundManager.init()
-      if (!gameOverRef.current) {
-        soundManager.playTenseBGM()
-      }
-      window.removeEventListener('keydown', initSound)
-      window.removeEventListener('pointerdown', initSound)
-    }
-    window.addEventListener('keydown', initSound)
-    window.addEventListener('pointerdown', initSound)
-    return () => {
-      window.removeEventListener('keydown', initSound)
-      window.removeEventListener('pointerdown', initSound)
-    }
-  }, [gameKey])
 
   // 매 프레임 점수 DOM 직접 업데이트 (리렌더링 방지)
   useEffect(() => {
@@ -491,7 +481,7 @@ export default function App() {
         <MeteoriteSystem 
           playerPosRef={playerPosRef} 
           gameOverRef={gameOverRef} 
-          setGameOver={setIsGameOver} 
+          setGameOver={() => setGameState('gameover')} 
           scoreRef={scoreRef} 
         />
 
@@ -529,8 +519,42 @@ export default function App() {
         생존 시간: 0.0초
       </div>
 
+      {/* 시작 화면 UI */}
+      {gameState === 'start' && (
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          color: 'white',
+          fontFamily: 'sans-serif',
+          zIndex: 20
+        }}>
+          <h1 style={{ fontSize: '4rem', margin: '0 0 20px 0', textShadow: '2px 2px 0 #000' }}>운석 피하기 3D</h1>
+          <button 
+            onClick={handleStart}
+            style={{
+              padding: '15px 50px',
+              fontSize: '2rem',
+              backgroundColor: '#32CD32',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              boxShadow: '0 4px 6px rgba(0,0,0,0.3)'
+            }}
+          >
+            게임 시작
+          </button>
+        </div>
+      )}
+
       {/* 게임 오버 화면 UI */}
-      {isGameOver && (
+      {gameState === 'gameover' && (
         <div style={{
           position: 'absolute',
           top: 0, left: 0, width: '100%', height: '100%',
