@@ -6,7 +6,8 @@ import { Joystick } from 'react-joystick-component'
 
 const mobileControls = {
   move: { x: 0, y: 0 },
-  jump: false
+  jump: false,
+  run: false
 }
 
 class ErrorBoundary extends React.Component<{ fallback: React.ReactNode, children: React.ReactNode }, { hasError: boolean }> {
@@ -178,7 +179,7 @@ function PlayerModel({ playerPosRef, gameOverRef }: any) {
 
     let moveZ = 0
     let rotY = 0
-    let isRunning = keys.current['ShiftLeft'] || keys.current['ShiftRight']
+    let isRunning = keys.current['ShiftLeft'] || keys.current['ShiftRight'] || mobileControls.run
 
     if (keys.current['ArrowUp'] || keys.current['KeyW']) moveZ += 1 
     if (keys.current['ArrowDown'] || keys.current['KeyS']) moveZ -= 1 
@@ -231,7 +232,7 @@ function PlayerModel({ playerPosRef, gameOverRef }: any) {
 
     const currentSpeed = isRunning ? runSpeed : speed
     if (moveZ !== 0) {
-      const direction = new THREE.Vector3(0, 0, moveZ).applyQuaternion(outerGroup.current.quaternion)
+      const direction = new THREE.Vector3(0, 0, Math.sign(moveZ)).applyQuaternion(outerGroup.current.quaternion)
       outerGroup.current.position.addScaledVector(direction, currentSpeed)
     }
 
@@ -319,7 +320,7 @@ function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
     }
 
     if (moveZ !== 0) {
-      const direction = new THREE.Vector3(0, 0, moveZ).applyQuaternion(outerGroup.current.quaternion)
+      const direction = new THREE.Vector3(0, 0, Math.sign(moveZ)).applyQuaternion(outerGroup.current.quaternion)
       outerGroup.current.position.addScaledVector(direction, speed)
     }
 
@@ -495,10 +496,22 @@ export default function App() {
         />
       </div>
 
-      {/* 모바일 점프 버튼 UI */}
+      {/* 모바일 액션 버튼 UI */}
       <div className="mobile-controls" style={{
-        position: 'absolute', bottom: 50, right: 30, zIndex: 10
+        position: 'absolute', bottom: 30, right: 30, zIndex: 10, display: 'flex', gap: '15px', alignItems: 'flex-end'
       }}>
+        <button 
+          onPointerDown={(e) => { e.preventDefault(); mobileControls.run = true }}
+          onPointerUp={(e) => { e.preventDefault(); mobileControls.run = false }}
+          onPointerLeave={(e) => { e.preventDefault(); mobileControls.run = false }}
+          style={{
+            width: 60, height: 60, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)',
+            border: '3px solid rgba(255,255,255,0.8)', color: 'white', fontWeight: 'bold', fontSize: '1rem',
+            userSelect: 'none', touchAction: 'none'
+          }}
+        >
+          RUN
+        </button>
         <button 
           onPointerDown={(e) => { e.preventDefault(); mobileControls.jump = true }}
           onPointerUp={(e) => { e.preventDefault(); mobileControls.jump = false }}
