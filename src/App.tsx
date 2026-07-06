@@ -39,6 +39,7 @@ function MeteoriteSystem({ playerPosRef, gameOverRef, setGameOver, scoreRef }: a
   
   const meteors = useRef(Array.from({ length: MAX_METEORS }, () => ({
     active: false,
+    justDied: true, // Initial state needs to be pushed to matrix once
     pos: new THREE.Vector3(),
     speed: 0
   })))
@@ -68,6 +69,8 @@ function MeteoriteSystem({ playerPosRef, gameOverRef, setGameOver, scoreRef }: a
       }
     }
 
+    let anyActive = false;
+
     meteors.current.forEach((m, i) => {
       if (m.active) {
         const prevY = m.pos.y
@@ -89,10 +92,12 @@ function MeteoriteSystem({ playerPosRef, gameOverRef, setGameOver, scoreRef }: a
 
         if (m.pos.y < -2) {
           m.active = false
+          m.justDied = true
         }
       }
       
       if (m.active) {
+        anyActive = true;
         meteorDummy.position.copy(m.pos)
         meteorDummy.rotation.x += delta * 2
         meteorDummy.rotation.y += delta * 2
@@ -101,12 +106,14 @@ function MeteoriteSystem({ playerPosRef, gameOverRef, setGameOver, scoreRef }: a
         if (meshRef.current) meshRef.current.setMatrixAt(i, meteorDummy.matrix)
         
         warningDummy.position.set(m.pos.x, 0.05, m.pos.z) 
-        warningDummy.rotation.set(-Math.PI / 2, 0, 0) // 바닥에 눕힘
+        warningDummy.rotation.set(-Math.PI / 2, 0, 0)
         const scale = Math.max(0.01, 1 - (m.pos.y / 30)) * 2.5 
         warningDummy.scale.set(scale, scale, scale)
         warningDummy.updateMatrix()
         if (warningRef.current) warningRef.current.setMatrixAt(i, warningDummy.matrix)
-      } else {
+      } else if (m.justDied) {
+        anyActive = true;
+        m.justDied = false;
         meteorDummy.position.set(0, -100, 0)
         meteorDummy.scale.set(0, 0, 0)
         meteorDummy.updateMatrix()
@@ -119,8 +126,10 @@ function MeteoriteSystem({ playerPosRef, gameOverRef, setGameOver, scoreRef }: a
       }
     })
     
-    if (meshRef.current) meshRef.current.instanceMatrix.needsUpdate = true
-    if (warningRef.current) warningRef.current.instanceMatrix.needsUpdate = true
+    if (anyActive) {
+      if (meshRef.current) meshRef.current.instanceMatrix.needsUpdate = true
+      if (warningRef.current) warningRef.current.instanceMatrix.needsUpdate = true
+    }
   })
 
   return (
@@ -473,7 +482,7 @@ export default function App() {
 
   return (
     <div style={{ width: '100vw', height: '100vh', margin: 0, overflow: 'hidden', position: 'relative' }}>
-      <Canvas key={gameKey}>
+      <Canvas key={gameKey} dpr={[1, 1.5]}>
         <color attach="background" args={['#87CEEB']} />
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 20, 10]} intensity={1} castShadow />
