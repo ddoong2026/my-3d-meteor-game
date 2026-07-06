@@ -3,10 +3,12 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import * as THREE from 'three'
 import { Joystick } from 'react-joystick-component'
+import { soundManager } from './utils/SoundManager'
 
 const mobileControls = {
   move: { x: 0, y: 0 },
   jump: false,
+  prevJump: false,
   run: false
 }
 
@@ -62,11 +64,13 @@ function MeteoriteSystem({ playerPosRef, gameOverRef, setGameOver, scoreRef }: a
         const dist = Math.random() * 20
         m.pos.set(playerPosRef.current.x + Math.cos(angle) * dist, 30, playerPosRef.current.z + Math.sin(angle) * dist)
         m.speed = 10 + Math.random() * 10 + timeElapsed.current * 0.5 
+        soundManager.playSwoosh()
       }
     }
 
     meteors.current.forEach((m, i) => {
       if (m.active) {
+        const prevY = m.pos.y
         m.pos.y -= m.speed * delta
         
         if (m.pos.y > 0 && m.pos.y < 2) {
@@ -74,7 +78,13 @@ function MeteoriteSystem({ playerPosRef, gameOverRef, setGameOver, scoreRef }: a
           if (dist < 1.5) { 
             setGameOver(true)
             gameOverRef.current = true
+            soundManager.stopBGM()
+            soundManager.playCrash()
           }
+        }
+
+        if (prevY >= 0 && m.pos.y < 0) {
+          soundManager.playCrash()
         }
 
         if (m.pos.y < -2) {
@@ -146,8 +156,11 @@ function PlayerModel({ playerPosRef, gameOverRef }: any) {
   const gravity = -0.015
   
   const keys = useRef<{ [key: string]: boolean }>({})
+  const prevKeys = useRef<{ [key: string]: boolean }>({})
   const velocity = useRef(new THREE.Vector3(0, 0, 0))
   const isJumping = useRef(false)
+  const jumpCount = useRef(0)
+  const stepTimer = useRef(0)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -200,9 +213,21 @@ function PlayerModel({ playerPosRef, gameOverRef }: any) {
     outerGroup.current.rotation.y += rotY * turnSpeed * delta
     const isMoving = moveZ !== 0
 
-    if ((keys.current['Space'] || mobileControls.jump) && !isJumping.current) {
-      velocity.current.y = jumpForce
-      isJumping.current = true
+    const spacePressed = keys.current['Space'] || mobileControls.jump
+    const prevSpacePressed = prevKeys.current['Space'] || mobileControls.prevJump
+    const jumpTriggered = spacePressed && !prevSpacePressed
+
+    if (jumpTriggered) {
+      if (!isJumping.current) {
+        velocity.current.y = jumpForce
+        isJumping.current = true
+        jumpCount.current = 1
+        soundManager.playJump()
+      } else if (jumpCount.current === 1) {
+        velocity.current.y = jumpForce * 1.2
+        jumpCount.current = 2
+        soundManager.playDoubleJump()
+      }
     }
 
     velocity.current.y += gravity
@@ -212,6 +237,7 @@ function PlayerModel({ playerPosRef, gameOverRef }: any) {
       outerGroup.current.position.y = 0
       velocity.current.y = 0
       isJumping.current = false
+      jumpCount.current = 0
     }
 
     if (isMoving) {
@@ -224,7 +250,17 @@ function PlayerModel({ playerPosRef, gameOverRef }: any) {
       if (actions[otherAnim]?.isRunning()) {
         actions[otherAnim]?.stop()
       }
+
+      if (!isJumping.current) {
+        stepTimer.current += delta
+        const stepInterval = isRunning ? 0.3 : 0.45
+        if (stepTimer.current > stepInterval) {
+          stepTimer.current = 0
+          soundManager.playStep(isRunning)
+        }
+      }
     } else {
+      stepTimer.current = 0
       Object.values(actions).forEach(action => {
         if (action?.isRunning()) action?.stop()
       })
@@ -245,6 +281,9 @@ function PlayerModel({ playerPosRef, gameOverRef }: any) {
     camera.position.lerp(cameraOffset, 0.1)
     const lookAtPos = new THREE.Vector3().copy(outerGroup.current.position).add(new THREE.Vector3(0, 1.5, 0))
     camera.lookAt(lookAtPos)
+
+    prevKeys.current['Space'] = !!keys.current['Space']
+    mobileControls.prevJump = mobileControls.jump
   })
 
   return (
@@ -267,8 +306,10 @@ function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
   const jumpForce = 0.3
   
   const keys = useRef<{ [key: string]: boolean }>({})
+  const prevKeys = useRef<{ [key: string]: boolean }>({})
   const velocity = useRef(new THREE.Vector3(0, 0, 0))
   const isJumping = useRef(false)
+  const jumpCount = useRef(0)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -305,9 +346,19 @@ function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
 
     outerGroup.current.rotation.y += rotY * turnSpeed * delta
 
-    if ((keys.current['Space'] || mobileControls.jump) && !isJumping.current) {
-      velocity.current.y = jumpForce
-      isJumping.current = true
+    const spacePressed = keys.current['Space'] || mobileControls.jump
+    const prevSpacePressed = prevKeys.current['Space'] || mobileControls.prevJump
+    const jumpTriggered = spacePressed && !prevSpacePressed
+
+    if (jumpTriggered) {
+      if (!isJumping.current) {
+        velocity.current.y = jumpForce
+        isJumping.current = true
+        jumpCount.current = 1
+      } else if (jumpCount.current === 1) {
+        velocity.current.y = jumpForce * 1.2
+        jumpCount.current = 2
+      }
     }
 
     velocity.current.y += gravity
@@ -317,6 +368,7 @@ function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
       outerGroup.current.position.y = 0
       velocity.current.y = 0
       isJumping.current = false
+      jumpCount.current = 0
     }
 
     if (moveZ !== 0) {
@@ -333,6 +385,9 @@ function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
     camera.position.lerp(cameraOffset, 0.1)
     const lookAtPos = new THREE.Vector3().copy(outerGroup.current.position).add(new THREE.Vector3(0, 1.5, 0))
     camera.lookAt(lookAtPos)
+
+    prevKeys.current['Space'] = !!keys.current['Space']
+    mobileControls.prevJump = mobileControls.jump
   })
 
   return (
@@ -362,7 +417,26 @@ export default function App() {
     gameOverRef.current = false
     scoreRef.current = 0
     setGameKey(k => k + 1)
+    soundManager.init()
+    soundManager.playTenseBGM()
   }
+
+  useEffect(() => {
+    const initSound = () => {
+      soundManager.init()
+      if (!gameOverRef.current) {
+        soundManager.playTenseBGM()
+      }
+      window.removeEventListener('keydown', initSound)
+      window.removeEventListener('pointerdown', initSound)
+    }
+    window.addEventListener('keydown', initSound)
+    window.addEventListener('pointerdown', initSound)
+    return () => {
+      window.removeEventListener('keydown', initSound)
+      window.removeEventListener('pointerdown', initSound)
+    }
+  }, [gameKey])
 
   // 매 프레임 점수 DOM 직접 업데이트 (리렌더링 방지)
   useEffect(() => {
@@ -473,7 +547,7 @@ export default function App() {
         <h3 style={{ margin: '0 0 10px 0' }}>운석 피하기</h3>
         <p style={{ margin: '5px 0' }}>W/S: 전진 / 후진</p>
         <p style={{ margin: '5px 0' }}>A/D: 좌우 회전</p>
-        <p style={{ margin: '5px 0' }}>Space: 점프</p>
+        <p style={{ margin: '5px 0' }}>Space: 점프 (2단 점프 가능)</p>
         <p style={{ margin: '5px 0' }}>Shift: 달리기</p>
       </div>
       {/* 모바일 조이스틱 UI */}
