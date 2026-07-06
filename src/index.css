@@ -8,9 +8,11 @@ html, body, #root {
 
 .mobile-controls {
   display: none;
+  pointer-events: auto;
 }
 
-@media (pointer: coarse) {
+/* 터치 기기이거나 화면 너비가 768px 이하인 모바일 환경에서 컨트롤러 표시 */
+@media (max-width: 768px), (pointer: coarse) {
   .mobile-controls {
     display: block !important;
   }
