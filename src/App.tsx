@@ -134,13 +134,13 @@ function MeteoriteSystem({ playerPosRef, gameOverRef, setGameOver, scoreRef }: a
 
   return (
     <>
-      <instancedMesh ref={meshRef} args={[null as any, null as any, MAX_METEORS]} castShadow frustumCulled={false}>
+      <instancedMesh ref={meshRef} args={[null as any, null as any, MAX_METEORS]} frustumCulled={false}>
         <dodecahedronGeometry args={[1, 0]} />
-        <meshStandardMaterial color="#444" roughness={0.8} />
+        <meshLambertMaterial color="#444" />
       </instancedMesh>
       
       <instancedMesh ref={warningRef} args={[null as any, null as any, MAX_METEORS]} frustumCulled={false}>
-        <ringGeometry args={[0.7, 1, 32]} />
+        <ringGeometry args={[0.7, 1, 16]} />
         <meshBasicMaterial color="red" transparent opacity={0.6} side={THREE.DoubleSide} />
       </instancedMesh>
     </>
@@ -436,7 +436,7 @@ function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
     <group ref={outerGroup}>
       <mesh ref={innerMesh} position={[0, 0.5, 0]}>
         <boxGeometry args={[1, 1, 1]} />
-        <meshStandardMaterial color="hotpink" />
+        <meshLambertMaterial color="hotpink" />
       </mesh>
     </group>
   )
@@ -482,10 +482,10 @@ export default function App() {
 
   return (
     <div style={{ width: '100vw', height: '100vh', margin: 0, overflow: 'hidden', position: 'relative' }}>
-      <Canvas key={gameKey} dpr={[1, 1.5]}>
+      <Canvas key={gameKey} dpr={1} gl={{ antialias: false, powerPreference: "high-performance" }}>
         <color attach="background" args={['#87CEEB']} />
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[10, 20, 10]} intensity={1} castShadow />
+        <ambientLight intensity={0.8} />
+        <directionalLight position={[10, 20, 10]} intensity={0.5} />
         
         <MeteoriteSystem 
           playerPosRef={playerPosRef} 
@@ -500,9 +500,9 @@ export default function App() {
           </Suspense>
         </ErrorBoundary>
 
-        <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <mesh rotation={[-Math.PI / 2, 0, 0]}>
           <planeGeometry args={[200, 200]} />
-          <meshStandardMaterial color="#32CD32" />
+          <meshLambertMaterial color="#32CD32" />
         </mesh>
         
         <gridHelper args={[200, 200]} />
