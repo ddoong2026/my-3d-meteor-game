@@ -161,6 +161,7 @@ function PlayerModel({ playerPosRef, gameOverRef }: any) {
   const isJumping = useRef(false)
   const jumpCount = useRef(0)
   const stepTimer = useRef(0)
+  const flipAngle = useRef(0)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -226,8 +227,22 @@ function PlayerModel({ playerPosRef, gameOverRef }: any) {
       } else if (jumpCount.current === 1) {
         velocity.current.y = jumpForce * 1.2
         jumpCount.current = 2
+        flipAngle.current = 0
         soundManager.playDoubleJump()
       }
+    }
+
+    if (jumpCount.current === 2) {
+      flipAngle.current += delta * 15 // Complete 360 in about 0.4s
+      if (flipAngle.current >= Math.PI * 2) {
+        flipAngle.current = Math.PI * 2
+      }
+    } else {
+      flipAngle.current = 0
+    }
+
+    if (innerGroup.current) {
+      innerGroup.current.rotation.x = -flipAngle.current
     }
 
     velocity.current.y += gravity
@@ -238,6 +253,7 @@ function PlayerModel({ playerPosRef, gameOverRef }: any) {
       velocity.current.y = 0
       isJumping.current = false
       jumpCount.current = 0
+      flipAngle.current = 0
     }
 
     if (isMoving) {
@@ -310,6 +326,8 @@ function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
   const velocity = useRef(new THREE.Vector3(0, 0, 0))
   const isJumping = useRef(false)
   const jumpCount = useRef(0)
+  const flipAngle = useRef(0)
+  const innerMesh = useRef<THREE.Mesh>(null)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -358,7 +376,21 @@ function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
       } else if (jumpCount.current === 1) {
         velocity.current.y = jumpForce * 1.2
         jumpCount.current = 2
+        flipAngle.current = 0
       }
+    }
+
+    if (jumpCount.current === 2) {
+      flipAngle.current += delta * 15
+      if (flipAngle.current >= Math.PI * 2) {
+        flipAngle.current = Math.PI * 2
+      }
+    } else {
+      flipAngle.current = 0
+    }
+
+    if (innerMesh.current) {
+      innerMesh.current.rotation.x = -flipAngle.current
     }
 
     velocity.current.y += gravity
@@ -369,6 +401,7 @@ function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
       velocity.current.y = 0
       isJumping.current = false
       jumpCount.current = 0
+      flipAngle.current = 0
     }
 
     if (moveZ !== 0) {
@@ -392,7 +425,7 @@ function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
 
   return (
     <group ref={outerGroup}>
-      <mesh position={[0, 0.5, 0]}>
+      <mesh ref={innerMesh} position={[0, 0.5, 0]}>
         <boxGeometry args={[1, 1, 1]} />
         <meshStandardMaterial color="hotpink" />
       </mesh>

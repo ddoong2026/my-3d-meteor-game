@@ -130,41 +130,53 @@ export class SoundManager {
     if (this.isPlayingBgm) return;
     this.isPlayingBgm = true;
 
-    // A tense, pulsing bass arpeggiator
-    const notes = [110, 110, 110, 116, 123, 110, 103, 110];
-    let step = 0;
+    // Create a continuous oscillating siren for tense BGM
+    this.bgmOsc = this.ctx.createOscillator();
+    this.bgmGain = this.ctx.createGain();
+    
+    // An LFO to modulate the frequency (creates a siren/tense effect)
+    const lfo = this.ctx.createOscillator();
+    const lfoGain = this.ctx.createGain();
 
-    this.bgmInterval = setInterval(() => {
-      if (!this.ctx || !this.isPlayingBgm) return;
-      const osc = this.ctx.createOscillator();
-      const gain = this.ctx.createGain();
-      osc.connect(gain);
-      gain.connect(this.ctx.destination);
-      
-      osc.type = 'sawtooth';
-      osc.frequency.setValueAtTime(notes[step % notes.length], this.ctx.currentTime);
-      
-      const filter = this.ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(300, this.ctx.currentTime);
-      filter.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.15);
-      
-      osc.disconnect();
-      osc.connect(filter);
-      filter.connect(gain);
-      
-      gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
-      
-      osc.start();
-      osc.stop(this.ctx.currentTime + 0.15);
-      
-      step++;
-    }, 200); // 150 BPM 8th notes (approx)
+    lfo.type = 'sine';
+    lfo.frequency.value = 2.5; // 2.5 Hz modulation
+    
+    // Siren pitch range
+    lfoGain.gain.value = 40; // +/- 40 Hz
+    this.bgmOsc.frequency.value = 200; // Base 200 Hz (very audible)
+    
+    lfo.connect(lfoGain);
+    lfoGain.connect(this.bgmOsc.frequency);
+    
+    this.bgmOsc.type = 'sawtooth';
+    
+    this.bgmOsc.connect(this.bgmGain);
+    this.bgmGain.connect(this.ctx.destination);
+    
+    this.bgmGain.gain.setValueAtTime(0, this.ctx.currentTime);
+    this.bgmGain.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 1); // Fade in
+    
+    this.bgmOsc.start();
+    lfo.start();
+
+    // Store LFO so we can stop it later
+    (this.bgmOsc as any).lfo = lfo;
   }
 
   stopBGM() {
     this.isPlayingBgm = false;
+    if (this.bgmGain && this.ctx) {
+      this.bgmGain.gain.cancelScheduledValues(this.ctx.currentTime);
+      this.bgmGain.gain.setValueAtTime(this.bgmGain.gain.value, this.ctx.currentTime);
+      this.bgmGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.5);
+    }
+    if (this.bgmOsc && this.ctx) {
+      const osc = this.bgmOsc;
+      const lfo = (osc as any).lfo;
+      osc.stop(this.ctx.currentTime + 0.5);
+      if (lfo) lfo.stop(this.ctx.currentTime + 0.5);
+      this.bgmOsc = null;
+    }
     if (this.bgmInterval) {
       clearInterval(this.bgmInterval);
       this.bgmInterval = null;
