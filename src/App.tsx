@@ -2,6 +2,12 @@ import React, { Suspense, useRef, useEffect, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { useGLTF, useAnimations } from '@react-three/drei'
 import * as THREE from 'three'
+import { Joystick } from 'react-joystick-component'
+
+const mobileControls = {
+  move: { x: 0, y: 0 },
+  jump: false
+}
 
 class ErrorBoundary extends React.Component<{ fallback: React.ReactNode, children: React.ReactNode }, { hasError: boolean }> {
   constructor(props: { fallback: React.ReactNode, children: React.ReactNode }) {
@@ -179,10 +185,21 @@ function PlayerModel({ playerPosRef, gameOverRef }: any) {
     if (keys.current['ArrowLeft'] || keys.current['KeyA']) rotY += 1 
     if (keys.current['ArrowRight'] || keys.current['KeyD']) rotY -= 1 
 
+    // 모바일 조이스틱 입력 합산
+    moveZ += mobileControls.move.y
+    rotY -= mobileControls.move.x
+    
+    // 조이스틱을 끝까지 밀면 달리기 판정
+    const joyDist = Math.hypot(mobileControls.move.x, mobileControls.move.y)
+    if (joyDist > 0.8) isRunning = true
+
+    moveZ = Math.max(-1, Math.min(1, moveZ))
+    rotY = Math.max(-1, Math.min(1, rotY))
+
     outerGroup.current.rotation.y += rotY * turnSpeed * delta
     const isMoving = moveZ !== 0
 
-    if (keys.current['Space'] && !isJumping.current) {
+    if ((keys.current['Space'] || mobileControls.jump) && !isJumping.current) {
       velocity.current.y = jumpForce
       isJumping.current = true
     }
@@ -280,9 +297,14 @@ function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
     if (keys.current['ArrowLeft'] || keys.current['KeyA']) rotY += 1
     if (keys.current['ArrowRight'] || keys.current['KeyD']) rotY -= 1
 
+    moveZ += mobileControls.move.y
+    rotY -= mobileControls.move.x
+    moveZ = Math.max(-1, Math.min(1, moveZ))
+    rotY = Math.max(-1, Math.min(1, rotY))
+
     outerGroup.current.rotation.y += rotY * turnSpeed * delta
 
-    if (keys.current['Space'] && !isJumping.current) {
+    if ((keys.current['Space'] || mobileControls.jump) && !isJumping.current) {
       velocity.current.y = jumpForce
       isJumping.current = true
     }
@@ -452,6 +474,43 @@ export default function App() {
         <p style={{ margin: '5px 0' }}>A/D: 좌우 회전</p>
         <p style={{ margin: '5px 0' }}>Space: 점프</p>
         <p style={{ margin: '5px 0' }}>Shift: 달리기</p>
+      </div>
+      {/* 모바일 조이스틱 UI */}
+      <div className="mobile-controls" style={{
+        position: 'absolute', bottom: 30, left: 30, zIndex: 10
+      }}>
+        <Joystick 
+          size={120} 
+          baseColor="rgba(255,255,255,0.2)" 
+          stickColor="rgba(255,255,255,0.8)" 
+          move={(e) => {
+            // size가 120이므로 중심에서 가장자리까지 최대값은 60
+            mobileControls.move.x = (e.x || 0) / 60
+            mobileControls.move.y = (e.y || 0) / 60
+          }}
+          stop={() => { 
+            mobileControls.move.x = 0
+            mobileControls.move.y = 0 
+          }}
+        />
+      </div>
+
+      {/* 모바일 점프 버튼 UI */}
+      <div className="mobile-controls" style={{
+        position: 'absolute', bottom: 50, right: 30, zIndex: 10
+      }}>
+        <button 
+          onPointerDown={(e) => { e.preventDefault(); mobileControls.jump = true }}
+          onPointerUp={(e) => { e.preventDefault(); mobileControls.jump = false }}
+          onPointerLeave={(e) => { e.preventDefault(); mobileControls.jump = false }}
+          style={{
+            width: 80, height: 80, borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)',
+            border: '3px solid rgba(255,255,255,0.8)', color: 'white', fontWeight: 'bold', fontSize: '1.2rem',
+            userSelect: 'none', touchAction: 'none'
+          }}
+        >
+          JUMP
+        </button>
       </div>
     </div>
   )
