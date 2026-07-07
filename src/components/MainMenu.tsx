@@ -1,5 +1,3 @@
-import React from 'react'
-
 export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteor' | 'hoshik') => void }) {
   return (
     <div style={{

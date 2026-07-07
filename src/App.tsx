@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import MainMenu from './components/MainMenu'
 import MeteorGame from './games/MeteorGame'
 import HoshikGame from './games/HoshikGame'

@@ -26,7 +26,7 @@ class ErrorBoundary extends React.Component<{ fallback: React.ReactNode, childre
   }
 }
 
-function HoshikSystem({ playerPosRef, gameStateRef, statsRef, onGameOver, onLevelUp, onExpGain, levelRef }: any) {
+function HoshikSystem({ playerPosRef, gameStateRef, statsRef, onGameOver, onExpGain, levelRef }: any) {
   const normalMeshRef = useRef<THREE.InstancedMesh>(null)
   const fastMeshRef = useRef<THREE.InstancedMesh>(null)
   const tankMeshRef = useRef<THREE.InstancedMesh>(null)
@@ -237,7 +237,7 @@ function HoshikSystem({ playerPosRef, gameStateRef, statsRef, onGameOver, onLeve
     })
 
     // Update Enemies
-    const updateEnemyMesh = (pool: any[], meshRef: React.RefObject<THREE.InstancedMesh>, size: number) => {
+    const updateEnemyMesh = (pool: any[], meshRef: React.RefObject<THREE.InstancedMesh | null>, size: number) => {
       let needsUpdate = false
       pool.forEach((e, i) => {
         if (e.active) {
