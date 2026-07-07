@@ -11,7 +11,7 @@ export const mobileControls = {
   run: false
 }
 
-export function PlayerModel({ playerPosRef, gameOverRef }: any) {
+export function PlayerModel({ playerPosRef, gameOverRef, getFloorHeight, externalForceRef, onRespawn, autoForward, strafeOnly, speedMultiplier = 1 }: any) {
   const outerGroup = useRef<THREE.Group>(null)
   const innerGroup = useRef<THREE.Group>(null)
   const { scene, animations } = useGLTF('/models/player.glb')
@@ -32,6 +32,9 @@ export function PlayerModel({ playerPosRef, gameOverRef }: any) {
   const jumpCount = useRef(0)
   const stepTimer = useRef(0)
   const flipAngle = useRef(0)
+  const targetLane = useRef(0)
+  const prevLeft = useRef(false)
+  const prevRight = useRef(false)
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -39,11 +42,21 @@ export function PlayerModel({ playerPosRef, gameOverRef }: any) {
       keys.current[e.code] = true
     }
     const handleKeyUp = (e: KeyboardEvent) => (keys.current[e.code] = false)
+    
+    const handleRespawnEvent = (e: any) => {
+      if (e.detail && outerGroup.current) {
+        outerGroup.current.position.set(e.detail.x, e.detail.y, e.detail.z)
+        velocity.current.set(0, 0, 0)
+      }
+    }
+
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('keyup', handleKeyUp)
+    window.addEventListener('player_respawn', handleRespawnEvent)
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
+      window.removeEventListener('player_respawn', handleRespawnEvent)
     }
   }, [])
 
@@ -52,7 +65,7 @@ export function PlayerModel({ playerPosRef, gameOverRef }: any) {
 
     playerPosRef.current.copy(outerGroup.current.position)
 
-    if (gameOverRef.current) {
+    if (gameOverRef?.current) {
       Object.values(actions).forEach(action => {
         if (action?.isRunning()) action?.stop()
       })
@@ -61,15 +74,20 @@ export function PlayerModel({ playerPosRef, gameOverRef }: any) {
 
     let moveZ = 0
     let rotY = 0
-    let isRunning = keys.current['ShiftLeft'] || keys.current['ShiftRight'] || mobileControls.run
+    let isRunning = (keys.current['ShiftLeft'] || keys.current['ShiftRight'] || mobileControls.run) || autoForward
 
-    if (keys.current['ArrowUp'] || keys.current['KeyW']) moveZ += 1 
+    let moveX = 0
+
+    if (keys.current['ArrowUp'] || keys.current['KeyW'] || autoForward) moveZ += 1 
     if (keys.current['ArrowDown'] || keys.current['KeyS']) moveZ -= 1 
-    if (keys.current['ArrowLeft'] || keys.current['KeyA']) rotY += 1 
-    if (keys.current['ArrowRight'] || keys.current['KeyD']) rotY -= 1 
+
+    if (!strafeOnly) {
+      if (keys.current['ArrowLeft'] || keys.current['KeyA']) rotY += 1 
+      if (keys.current['ArrowRight'] || keys.current['KeyD']) rotY -= 1 
+    }
 
     moveZ += mobileControls.move.y
-    rotY -= mobileControls.move.x
+    if (!strafeOnly) rotY -= mobileControls.move.x
     
     const joyDist = Math.hypot(mobileControls.move.x, mobileControls.move.y)
     if (joyDist > 0.8) isRunning = true
@@ -114,12 +132,30 @@ export function PlayerModel({ playerPosRef, gameOverRef }: any) {
     velocity.current.y += gravity
     outerGroup.current.position.y += velocity.current.y
 
-    if (outerGroup.current.position.y <= 0) {
-      outerGroup.current.position.y = 0
+    if (externalForceRef?.current) {
+      outerGroup.current.position.add(externalForceRef.current)
+      externalForceRef.current.multiplyScalar(0.9)
+      if (externalForceRef.current.lengthSq() < 0.001) {
+        externalForceRef.current.set(0, 0, 0)
+      }
+    }
+
+    const floorHeight = getFloorHeight ? getFloorHeight(outerGroup.current.position.x, outerGroup.current.position.y, outerGroup.current.position.z) : 0
+
+    if (outerGroup.current.position.y <= floorHeight && velocity.current.y <= 0) {
+      outerGroup.current.position.y = floorHeight
       velocity.current.y = 0
       isJumping.current = false
       jumpCount.current = 0
       flipAngle.current = 0
+    }
+
+    if (outerGroup.current.position.y < -30) {
+      if (onRespawn) onRespawn()
+      else {
+        outerGroup.current.position.set(0, 5, 0)
+        velocity.current.set(0, 0, 0)
+      }
     }
 
     if (isMoving) {
@@ -148,10 +184,23 @@ export function PlayerModel({ playerPosRef, gameOverRef }: any) {
       })
     }
 
-    const currentSpeed = isRunning ? runSpeed : speed
+    const currentSpeed = (isRunning ? runSpeed : speed) * speedMultiplier
     if (moveZ !== 0) {
       const direction = new THREE.Vector3(0, 0, Math.sign(moveZ)).applyQuaternion(outerGroup.current.quaternion)
       outerGroup.current.position.addScaledVector(direction, currentSpeed)
+    }
+    if (strafeOnly) {
+      const leftPressed = keys.current['ArrowLeft'] || keys.current['KeyA']
+      const rightPressed = keys.current['ArrowRight'] || keys.current['KeyD']
+      if (leftPressed && !prevLeft.current) targetLane.current = Math.min(1, targetLane.current + 1)
+      if (rightPressed && !prevRight.current) targetLane.current = Math.max(-1, targetLane.current - 1)
+      prevLeft.current = !!leftPressed
+      prevRight.current = !!rightPressed
+
+      outerGroup.current.position.x = THREE.MathUtils.lerp(outerGroup.current.position.x, targetLane.current * 3, 0.15)
+    } else if (moveX !== 0) {
+      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(outerGroup.current.quaternion)
+      outerGroup.current.position.addScaledVector(right, Math.sign(moveX) * currentSpeed * 1.5)
     }
 
     const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(outerGroup.current.quaternion).normalize()
@@ -177,7 +226,7 @@ export function PlayerModel({ playerPosRef, gameOverRef }: any) {
   )
 }
 
-export function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
+export function FallbackPlayer({ playerPosRef, gameOverRef, getFloorHeight, externalForceRef, onRespawn, autoForward, strafeOnly, speedMultiplier = 1 }: any) {
   const outerGroup = useRef<THREE.Group>(null)
   const { camera } = useThree()
   
@@ -188,6 +237,9 @@ export function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
   
   const keys = useRef<{ [key: string]: boolean }>({})
   const prevKeys = useRef<{ [key: string]: boolean }>({})
+  const targetLane = useRef(0)
+  const prevLeft = useRef(false)
+  const prevRight = useRef(false)
   const velocity = useRef(new THREE.Vector3(0, 0, 0))
   const isJumping = useRef(false)
   const jumpCount = useRef(0)
@@ -212,18 +264,25 @@ export function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
     if (!outerGroup.current) return
     playerPosRef.current.copy(outerGroup.current.position)
 
-    if (gameOverRef.current) return
+    if (gameOverRef?.current) return
 
     let moveZ = 0
     let rotY = 0
+    let moveX = 0
 
-    if (keys.current['ArrowUp'] || keys.current['KeyW']) moveZ += 1
+    if (keys.current['ArrowUp'] || keys.current['KeyW'] || autoForward) moveZ += 1 
     if (keys.current['ArrowDown'] || keys.current['KeyS']) moveZ -= 1
-    if (keys.current['ArrowLeft'] || keys.current['KeyA']) rotY += 1
-    if (keys.current['ArrowRight'] || keys.current['KeyD']) rotY -= 1
+    if (strafeOnly) {
+      if (keys.current['ArrowLeft'] || keys.current['KeyA']) moveX += 1 
+      if (keys.current['ArrowRight'] || keys.current['KeyD']) moveX -= 1
+    } else {
+      if (keys.current['ArrowLeft'] || keys.current['KeyA']) rotY += 1 
+      if (keys.current['ArrowRight'] || keys.current['KeyD']) rotY -= 1 
+    }
 
     moveZ += mobileControls.move.y
-    rotY -= mobileControls.move.x
+    if (strafeOnly) moveX -= mobileControls.move.x
+    else rotY -= mobileControls.move.x
     moveZ = Math.max(-1, Math.min(1, moveZ))
     rotY = Math.max(-1, Math.min(1, rotY))
 
@@ -261,17 +320,49 @@ export function FallbackPlayer({ playerPosRef, gameOverRef }: any) {
     velocity.current.y += gravity
     outerGroup.current.position.y += velocity.current.y
 
-    if (outerGroup.current.position.y <= 0) {
-      outerGroup.current.position.y = 0
+    if (externalForceRef?.current) {
+      outerGroup.current.position.add(externalForceRef.current)
+      externalForceRef.current.multiplyScalar(0.9)
+      if (externalForceRef.current.lengthSq() < 0.001) {
+        externalForceRef.current.set(0, 0, 0)
+      }
+    }
+
+    const floorHeight = getFloorHeight ? getFloorHeight(outerGroup.current.position.x, outerGroup.current.position.y, outerGroup.current.position.z) : 0
+
+    if (outerGroup.current.position.y <= floorHeight && velocity.current.y <= 0) {
+      outerGroup.current.position.y = floorHeight
       velocity.current.y = 0
       isJumping.current = false
       jumpCount.current = 0
       flipAngle.current = 0
     }
 
+    if (outerGroup.current.position.y < -30) {
+      if (onRespawn) onRespawn()
+      else {
+        outerGroup.current.position.set(0, 5, 0)
+        velocity.current.set(0, 0, 0)
+      }
+    }
+
+    const currentSpeed = speed * speedMultiplier
     if (moveZ !== 0) {
       const direction = new THREE.Vector3(0, 0, Math.sign(moveZ)).applyQuaternion(outerGroup.current.quaternion)
-      outerGroup.current.position.addScaledVector(direction, speed)
+      outerGroup.current.position.addScaledVector(direction, currentSpeed)
+    }
+    if (strafeOnly) {
+      const leftPressed = keys.current['ArrowLeft'] || keys.current['KeyA']
+      const rightPressed = keys.current['ArrowRight'] || keys.current['KeyD']
+      if (leftPressed && !prevLeft.current) targetLane.current = Math.min(1, targetLane.current + 1)
+      if (rightPressed && !prevRight.current) targetLane.current = Math.max(-1, targetLane.current - 1)
+      prevLeft.current = !!leftPressed
+      prevRight.current = !!rightPressed
+
+      outerGroup.current.position.x = THREE.MathUtils.lerp(outerGroup.current.position.x, targetLane.current * 3, 0.15)
+    } else if (moveX !== 0) {
+      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(outerGroup.current.quaternion)
+      outerGroup.current.position.addScaledVector(right, Math.sign(moveX) * currentSpeed * 1.5)
     }
 
     const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(outerGroup.current.quaternion).normalize()

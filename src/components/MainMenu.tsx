@@ -1,4 +1,4 @@
-export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteor' | 'hoshik') => void }) {
+export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteor' | 'hoshik' | 'temple') => void }) {
   return (
     <div style={{
       width: '100vw',
@@ -80,6 +80,39 @@ export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteo
             사방에서 몰려오는 적을 물리치고<br/>레벨업하여 강해지세요!
           </p>
         </button>
+
+
+        <button
+          onClick={() => onSelectMode('temple')}
+          style={{
+            width: '300px',
+            height: '400px',
+            backgroundColor: '#2a4e2a',
+            border: '4px solid #4a8e4a',
+            borderRadius: '16px',
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            transition: 'transform 0.2s, borderColor 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.05)'
+            e.currentTarget.style.borderColor = '#8aff8a'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)'
+            e.currentTarget.style.borderColor = '#4a8e4a'
+          }}
+        >
+          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🏃</div>
+          <h2 style={{ fontSize: '2.5rem', margin: '0 0 10px 0', color: 'white' }}>호식런</h2>
+          <p style={{ fontSize: '1.2rem', color: '#ccc', textAlign: 'center', padding: '0 20px' }}>
+            장애물을 피하며<br/>끝없이 앞으로 달려가세요!
+          </p>
+        </button>
+
       </div>
     </div>
   )

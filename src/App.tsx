@@ -2,9 +2,10 @@ import { useState } from 'react'
 import MainMenu from './components/MainMenu'
 import MeteorGame from './games/MeteorGame'
 import HoshikGame from './games/HoshikGame'
+import TempleGame from './games/TempleGame'
 
 export default function App() {
-  const [mode, setMode] = useState<'menu' | 'meteor' | 'hoshik'>('menu')
+  const [mode, setMode] = useState<'menu' | 'meteor' | 'hoshik' | 'temple'>('menu')
 
   if (mode === 'menu') {
     return <MainMenu onSelectMode={setMode} />
@@ -17,6 +18,12 @@ export default function App() {
   if (mode === 'hoshik') {
     return <HoshikGame onBack={() => setMode('menu')} />
   }
+
+  if (mode === 'temple') {
+    return <TempleGame onBack={() => setMode('menu')} />
+  }
+
+
 
   return null
 }
