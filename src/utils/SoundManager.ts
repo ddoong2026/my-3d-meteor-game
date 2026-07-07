@@ -194,6 +194,111 @@ export class SoundManager {
       }
     }
   }
+
+  // --- Hoshik Commando Sounds ---
+  playShoot() {
+    if (!this.ctx) return;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(800, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(300, this.ctx.currentTime + 0.1);
+    
+    gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
+    
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.1);
+  }
+
+  playHit() {
+    if (!this.ctx) return;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, this.ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(50, this.ctx.currentTime + 0.1);
+    
+    gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
+    
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.1);
+  }
+
+  playEnemyDie() {
+    if (!this.ctx) return;
+    const bufferSize = this.ctx.sampleRate * 0.2; 
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+    
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(800, this.ctx.currentTime);
+    filter.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.2);
+    
+    const gain = this.ctx.createGain();
+    gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+    
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+    
+    noise.start();
+  }
+
+  playGetXp() {
+    if (!this.ctx) return;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(1200, this.ctx.currentTime);
+    osc.frequency.setValueAtTime(1600, this.ctx.currentTime + 0.05);
+    
+    gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
+    
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.1);
+  }
+
+  playLevelUp() {
+    if (!this.ctx) return;
+    const notes = [440, 554.37, 659.25, 880]; // A major arpeggio
+    notes.forEach((freq, i) => {
+      const osc = this.ctx!.createOscillator();
+      const gain = this.ctx!.createGain();
+      osc.connect(gain);
+      gain.connect(this.ctx!.destination);
+      
+      osc.type = 'square';
+      osc.frequency.value = freq;
+      
+      const startTime = this.ctx!.currentTime + i * 0.1;
+      gain.gain.setValueAtTime(0, this.ctx!.currentTime);
+      gain.gain.setValueAtTime(0.1, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.4);
+      
+      osc.start(startTime);
+      osc.stop(startTime + 0.4);
+    });
+  }
 }
 
 export const soundManager = new SoundManager();
