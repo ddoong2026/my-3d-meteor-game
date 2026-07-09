@@ -1,4 +1,4 @@
-export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteor' | 'hoshik' | 'temple') => void }) {
+export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteor' | 'hoshik' | 'temple' | 'kart') => void }) {
   return (
     <div style={{
       width: '100vw',
@@ -12,7 +12,7 @@ export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteo
       fontFamily: 'sans-serif'
     }}>
       <h1 style={{ fontSize: '5rem', marginBottom: '20px', textShadow: '4px 4px 0 #000' }}>
-        MY 3D GAME
+        호식이의 대모험
       </h1>
       <p style={{ fontSize: '1.5rem', marginBottom: '50px', color: '#aaa' }}>
         플레이할 게임 모드를 선택하세요
@@ -43,10 +43,10 @@ export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteo
             e.currentTarget.style.borderColor = '#4a4a8e'
           }}
         >
-          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>☄️</div>
-          <h2 style={{ fontSize: '2.5rem', margin: '0 0 10px 0', color: 'white' }}>운석 피하기</h2>
+          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>💩</div>
+          <h2 style={{ fontSize: '2.5rem', margin: '0 0 10px 0', color: 'white' }}>똥피하는 호식이</h2>
           <p style={{ fontSize: '1.2rem', color: '#ccc', textAlign: 'center', padding: '0 20px' }}>
-            하늘에서 떨어지는 운석을 피해<br/>최대한 오래 살아남으세요!
+            하늘에서 떨어지는 똥을 피해<br/>최대한 오래 살아남으세요!
           </p>
         </button>
 
@@ -113,6 +113,36 @@ export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteo
           </p>
         </button>
 
+        <button
+          onClick={() => onSelectMode('kart')}
+          style={{
+            width: '300px',
+            height: '400px',
+            backgroundColor: '#4e4e2a',
+            border: '4px solid #8e8e4a',
+            borderRadius: '16px',
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            transition: 'transform 0.2s, borderColor 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.05)'
+            e.currentTarget.style.borderColor = '#ffff8a'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)'
+            e.currentTarget.style.borderColor = '#8e8e4a'
+          }}
+        >
+          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🏎️</div>
+          <h2 style={{ fontSize: '2.5rem', margin: '0 0 10px 0', color: 'white' }}>호식카트</h2>
+          <p style={{ fontSize: '1.2rem', color: '#ccc', textAlign: 'center', padding: '0 20px' }}>
+            트랙을 질주하며<br/>최고의 랩타임에 도전하세요!
+          </p>
+        </button>
       </div>
     </div>
   )

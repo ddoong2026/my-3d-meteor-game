@@ -255,7 +255,7 @@ export default function MeteorGame({ onBack }: { onBack: () => void }) {
           fontFamily: 'sans-serif',
           zIndex: 20
         }}>
-          <h1 style={{ fontSize: '4rem', margin: '0 0 20px 0', textShadow: '2px 2px 0 #000' }}>운석 피하기 3D</h1>
+          <h1 style={{ fontSize: '4rem', margin: '0 0 20px 0', textShadow: '2px 2px 0 #000' }}>똥피하는 호식이</h1>
           <button 
             onClick={handleStart}
             style={{
