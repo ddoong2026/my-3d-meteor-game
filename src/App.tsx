@@ -4,12 +4,16 @@ import MeteorGame from './games/MeteorGame'
 import HoshikGame from './games/HoshikGame'
 import TempleGame from './games/TempleGame'
 import HoshikGame2 from './games/HoshikGame2'
+import { soundManager } from './utils/SoundManager'
 
 export default function App() {
   const [mode, setMode] = useState<'menu' | 'meteor' | 'hoshik' | 'temple' | 'hoshik2'>('menu')
 
   if (mode === 'menu') {
-    return <MainMenu onSelectMode={setMode} />
+    return <MainMenu onSelectMode={(m) => {
+      soundManager.init()
+      setMode(m)
+    }} />
   }
 
   if (mode === 'meteor') {

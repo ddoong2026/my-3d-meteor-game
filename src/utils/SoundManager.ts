@@ -21,15 +21,16 @@ export class SoundManager {
     osc.connect(gain);
     gain.connect(this.ctx.destination);
     
+    // Classic jump sound
     osc.type = 'square';
     osc.frequency.setValueAtTime(300, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(600, this.ctx.currentTime + 0.1);
+    osc.frequency.exponentialRampToValueAtTime(700, this.ctx.currentTime + 0.15);
     
     gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.1);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
     
     osc.start();
-    osc.stop(this.ctx.currentTime + 0.1);
+    osc.stop(this.ctx.currentTime + 0.15);
   }
 
   playDoubleJump() {
@@ -39,15 +40,16 @@ export class SoundManager {
     osc.connect(gain);
     gain.connect(this.ctx.destination);
     
+    // Higher pitched double jump
     osc.type = 'square';
     osc.frequency.setValueAtTime(500, this.ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(900, this.ctx.currentTime + 0.15);
+    osc.frequency.exponentialRampToValueAtTime(1000, this.ctx.currentTime + 0.2);
     
     gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.15);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
     
     osc.start();
-    osc.stop(this.ctx.currentTime + 0.15);
+    osc.stop(this.ctx.currentTime + 0.2);
   }
 
   playCrash() {
@@ -298,6 +300,26 @@ export class SoundManager {
       osc.start(startTime);
       osc.stop(startTime + 0.4);
     });
+  }
+
+  playCoin() {
+    if (!this.ctx) return;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(988, this.ctx.currentTime);
+    osc.frequency.setValueAtTime(1319, this.ctx.currentTime + 0.08);
+    
+    gain.gain.setValueAtTime(0, this.ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 0.02);
+    gain.gain.setValueAtTime(0.1, this.ctx.currentTime + 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.4);
+    
+    osc.start();
+    osc.stop(this.ctx.currentTime + 0.4);
   }
 }
 

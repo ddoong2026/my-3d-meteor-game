@@ -318,7 +318,7 @@ function TempleSystem({ playerPosRef, onGameOver, setDistance, setCoins, speedRe
           c.active = false
           c.justDied = true
           setCoins((s: number) => s + 1)
-          soundManager.playGetXp()
+          soundManager.playCoin()
         }
       }
 
