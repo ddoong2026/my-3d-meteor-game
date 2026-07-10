@@ -589,7 +589,7 @@ export default function HoshikGame({ onBack }: { onBack: () => void }) {
     gameOverRef.current = false
     setHp(100); setLevel(1); setExp(0); setExpNeeded(50); setTime(0)
     statsRef.current = {
-      hp: 100, maxHp: 100, magnetRadius: 8,
+      hp: 100, maxHp: 100, magnetRadius: 8, speedMultiplier: 1.0,
       weapons: {
         wand: { level: 1, damage: 15, fireRate: 0.8, count: 2, speed: 15 },
         aura: { level: 0, damage: 5, radius: 4, tickRate: 0.5 },

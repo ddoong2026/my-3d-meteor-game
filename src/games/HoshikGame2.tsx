@@ -3,7 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { useGLTF } from '@react-three/drei'
 import * as THREE from 'three'
 
-function getMeshFromGLTF(gltf: any) {
+function getMeshFromGLTF(gltf: any): any {
   let mesh: THREE.Mesh | null = null;
   gltf.scene.traverse((child: any) => {
     if (child.isMesh && !mesh) {
