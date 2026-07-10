@@ -458,7 +458,8 @@ function HoshikSystem({ playerPosRef, gameStateRef, statsRef, onGameOver, onExpG
         if (distSq < stats.magnetRadius * stats.magnetRadius) g.tracking = true
         if (g.tracking) {
           const dir = new THREE.Vector3().copy(playerPosRef.current).setY(0.2).sub(g.pos).normalize()
-          g.pos.addScaledVector(dir, 15 * delta)
+          const gemSpeed = 15 + stats.speedMultiplier * 5 + stats.magnetRadius * 2
+          g.pos.addScaledVector(dir, gemSpeed * delta)
           if (distSq < 1.0) {
             g.active = false
             g.justDied = true
