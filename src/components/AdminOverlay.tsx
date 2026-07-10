@@ -108,15 +108,20 @@ export default function AdminOverlay({ children }: AdminOverlayProps) {
     zIndex: 9999,
   }
 
-  const hiddenBtnStyle: React.CSSProperties = {
+  const adminBtnStyle: React.CSSProperties = {
     position: 'fixed',
-    bottom: 0,
-    right: 0,
-    width: '50px',
-    height: '50px',
-    opacity: 0,
+    bottom: '20px',
+    right: '20px',
+    padding: '10px 15px',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    color: 'white',
+    borderRadius: '8px',
     cursor: 'pointer',
     zIndex: 10000,
+    fontSize: '0.9rem',
+    backdropFilter: 'blur(4px)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    transition: 'opacity 0.2s',
   }
 
   const adminConsoleStyle: React.CSSProperties = {
@@ -137,13 +142,15 @@ export default function AdminOverlay({ children }: AdminOverlayProps) {
 
   return (
     <>
-      {/* Hidden button to open admin login */}
-      <div 
-        style={hiddenBtnStyle} 
-        onClick={() => {
-          if (!showAdminConsole) setShowAdminLogin(true)
-        }} 
-      />
+      {/* Button to open admin login */}
+      {!showAdminConsole && !showAdminLogin && (
+        <div 
+          style={adminBtnStyle} 
+          onClick={() => setShowAdminLogin(true)} 
+        >
+          ⚙️ 관리자
+        </div>
+      )}
 
       {/* The main app, only shown if not paused or if locally unlocked */}
       {(!isPaused || isUnlocked) && children}
