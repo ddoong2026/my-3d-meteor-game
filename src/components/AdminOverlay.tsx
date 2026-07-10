@@ -23,7 +23,7 @@ export default function AdminOverlay({ children }: AdminOverlayProps) {
       const { data, error } = await supabase
         .from('app_settings')
         .select('maintenance_mode')
-        .eq('id', 1)
+        .eq('id', 2)
         .single()
       
       if (data) {
@@ -40,7 +40,7 @@ export default function AdminOverlay({ children }: AdminOverlayProps) {
       .channel('app_settings_changes')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'app_settings', filter: 'id=eq.1' },
+        { event: '*', schema: 'public', table: 'app_settings', filter: 'id=eq.2' },
         (payload) => {
           const newData = payload.new as Record<string, any>
           if (newData && typeof newData.maintenance_mode === 'boolean') {
@@ -84,7 +84,7 @@ export default function AdminOverlay({ children }: AdminOverlayProps) {
     const newStatus = !isPaused
     const { error } = await supabase
       .from('app_settings')
-      .upsert({ id: 1, maintenance_mode: newStatus })
+      .upsert({ id: 2, maintenance_mode: newStatus })
     
     if (error) {
       console.error('Error updating status:', error)
