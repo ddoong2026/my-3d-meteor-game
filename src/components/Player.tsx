@@ -11,7 +11,7 @@ export const mobileControls = {
   run: false
 }
 
-export function PlayerModel({ playerPosRef, gameOverRef, getFloorHeight, externalForceRef, onRespawn, autoForward, strafeOnly, speedMultiplier = 1 }: any) {
+export function PlayerModel({ playerPosRef, gameOverRef, getFloorHeight, externalForceRef, onRespawn, autoForward, strafeOnly, speedMultiplier = 1, fixedCamera = false, customGravity = -0.015, customJumpForce = 0.3 }: any) {
   const outerGroup = useRef<THREE.Group>(null)
   const innerGroup = useRef<THREE.Group>(null)
   const { scene, animations } = useGLTF('/models/player.glb')
@@ -22,8 +22,8 @@ export function PlayerModel({ playerPosRef, gameOverRef, getFloorHeight, externa
   const speed = 0.1
   const runSpeed = 0.2
   const turnSpeed = 3.0
-  const jumpForce = 0.3
-  const gravity = -0.015
+  const jumpForce = customJumpForce
+  const gravity = customGravity
   
   const keys = useRef<{ [key: string]: boolean }>({})
   const prevKeys = useRef<{ [key: string]: boolean }>({})
@@ -209,7 +209,11 @@ export function PlayerModel({ playerPosRef, gameOverRef, getFloorHeight, externa
       .add(new THREE.Vector3(0, 2.5, 0)) 
       .addScaledVector(forward, -6) 
 
-    camera.position.lerp(cameraOffset, 0.1)
+    if (fixedCamera) {
+      camera.position.copy(cameraOffset)
+    } else {
+      camera.position.lerp(cameraOffset, 0.1)
+    }
     const lookAtPos = new THREE.Vector3().copy(outerGroup.current.position).add(new THREE.Vector3(0, 1.5, 0))
     camera.lookAt(lookAtPos)
 
@@ -226,14 +230,14 @@ export function PlayerModel({ playerPosRef, gameOverRef, getFloorHeight, externa
   )
 }
 
-export function FallbackPlayer({ playerPosRef, gameOverRef, getFloorHeight, externalForceRef, onRespawn, autoForward, strafeOnly, speedMultiplier = 1 }: any) {
+export function FallbackPlayer({ playerPosRef, gameOverRef, getFloorHeight, externalForceRef, onRespawn, autoForward, strafeOnly, speedMultiplier = 1, fixedCamera = false, customGravity = -0.015, customJumpForce = 0.3 }: any) {
   const outerGroup = useRef<THREE.Group>(null)
   const { camera } = useThree()
   
   const speed = 0.1
   const turnSpeed = 3.0
-  const gravity = -0.015
-  const jumpForce = 0.3
+  const gravity = customGravity
+  const jumpForce = customJumpForce
   
   const keys = useRef<{ [key: string]: boolean }>({})
   const prevKeys = useRef<{ [key: string]: boolean }>({})
@@ -371,7 +375,11 @@ export function FallbackPlayer({ playerPosRef, gameOverRef, getFloorHeight, exte
       .add(new THREE.Vector3(0, 2.5, 0))
       .addScaledVector(forward, -6)
 
-    camera.position.lerp(cameraOffset, 0.1)
+    if (fixedCamera) {
+      camera.position.copy(cameraOffset)
+    } else {
+      camera.position.lerp(cameraOffset, 0.1)
+    }
     const lookAtPos = new THREE.Vector3().copy(outerGroup.current.position).add(new THREE.Vector3(0, 1.5, 0))
     camera.lookAt(lookAtPos)
 

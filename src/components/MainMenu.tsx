@@ -1,4 +1,4 @@
-export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteor' | 'hoshik' | 'temple' | 'kart') => void }) {
+export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteor' | 'hoshik' | 'temple' | 'hoshik2') => void }) {
   return (
     <div style={{
       width: '100vw',
@@ -114,7 +114,7 @@ export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteo
         </button>
 
         <button
-          onClick={() => onSelectMode('kart')}
+          onClick={() => onSelectMode('hoshik2')}
           style={{
             width: '300px',
             height: '400px',
@@ -137,10 +137,10 @@ export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteo
             e.currentTarget.style.borderColor = '#8e8e4a'
           }}
         >
-          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🏎️</div>
-          <h2 style={{ fontSize: '2.5rem', margin: '0 0 10px 0', color: 'white' }}>호식카트</h2>
+          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>🧪</div>
+          <h2 style={{ fontSize: '2.5rem', margin: '0 0 10px 0', color: 'white' }}>호식특공대2</h2>
           <p style={{ fontSize: '1.2rem', color: '#ccc', textAlign: 'center', padding: '0 20px' }}>
-            트랙을 질주하며<br/>최고의 랩타임에 도전하세요!
+            코드 실험용으로 사용하는<br/>호식특공대 복제본입니다!
           </p>
         </button>
       </div>

@@ -564,7 +564,7 @@ export default function HoshikGame({ onBack }: { onBack: () => void }) {
   useEffect(() => { gameStateRef.current = gameState; levelRef.current = level }, [gameState, level])
 
   const statsRef = useRef({
-    hp: 100, maxHp: 100, magnetRadius: 8,
+    hp: 100, maxHp: 100, magnetRadius: 8, speedMultiplier: 1.2,
     weapons: {
       wand: { level: 1, damage: 15, fireRate: 0.8, count: 2, speed: 15 },
       aura: { level: 0, damage: 5, radius: 4, tickRate: 0.5 },
@@ -629,6 +629,9 @@ export default function HoshikGame({ onBack }: { onBack: () => void }) {
 
     possible.push({ name: '자석 범위 증가', apply: () => statsRef.current.magnetRadius += 3 })
     possible.push({ name: '최대 체력 회복', apply: () => statsRef.current.hp = statsRef.current.maxHp })
+    if (statsRef.current.speedMultiplier < 2.0) {
+      possible.push({ name: '이동속도 증가', apply: () => statsRef.current.speedMultiplier += 0.15 })
+    }
 
     // Shuffle and pick 3
     setUpgradeOptions(possible.sort(() => Math.random() - 0.5).slice(0, 3))
@@ -675,9 +678,9 @@ export default function HoshikGame({ onBack }: { onBack: () => void }) {
           onExpGain={handleExpGain}
         />
 
-        <ErrorBoundary fallback={<FallbackPlayer playerPosRef={playerPosRef} gameOverRef={gameOverRef} />}>
+        <ErrorBoundary fallback={<FallbackPlayer playerPosRef={playerPosRef} gameOverRef={gameOverRef} speedMultiplier={statsRef.current.speedMultiplier} />}>
           <Suspense fallback={null}>
-            <PlayerModel playerPosRef={playerPosRef} gameOverRef={gameOverRef} />
+            <PlayerModel playerPosRef={playerPosRef} gameOverRef={gameOverRef} speedMultiplier={statsRef.current.speedMultiplier} />
           </Suspense>
         </ErrorBoundary>
 
