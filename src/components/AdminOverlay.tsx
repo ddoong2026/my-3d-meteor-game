@@ -42,10 +42,11 @@ export default function AdminOverlay({ children }: AdminOverlayProps) {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'app_settings', filter: 'id=eq.global' },
         (payload) => {
-          if (payload.new && typeof payload.new.is_paused === 'boolean') {
-            setIsPaused(payload.new.is_paused)
+          const newData = payload.new as Record<string, any>
+          if (newData && typeof newData.is_paused === 'boolean') {
+            setIsPaused(newData.is_paused)
             // If it becomes paused again, lock it locally
-            if (payload.new.is_paused) {
+            if (newData.is_paused) {
               setIsUnlocked(false)
             }
           }
