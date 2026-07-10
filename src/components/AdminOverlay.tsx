@@ -84,12 +84,11 @@ export default function AdminOverlay({ children }: AdminOverlayProps) {
     const newStatus = !isPaused
     const { error } = await supabase
       .from('app_settings')
-      .update({ is_paused: newStatus })
-      .eq('id', 'global')
+      .upsert({ id: 'global', is_paused: newStatus })
     
     if (error) {
       console.error('Error updating status:', error)
-      alert('상태 업데이트에 실패했습니다.')
+      alert('상태 업데이트에 실패했습니다: ' + error.message)
     }
   }
 
