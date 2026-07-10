@@ -22,12 +22,12 @@ export default function AdminOverlay({ children }: AdminOverlayProps) {
     const fetchSettings = async () => {
       const { data, error } = await supabase
         .from('app_settings')
-        .select('is_paused')
-        .eq('id', 'global')
+        .select('maintenance_mode')
+        .eq('id', 1)
         .single()
       
       if (data) {
-        setIsPaused(data.is_paused)
+        setIsPaused(data.maintenance_mode)
       } else if (error) {
         console.error('Error fetching settings:', error)
       }
@@ -40,13 +40,13 @@ export default function AdminOverlay({ children }: AdminOverlayProps) {
       .channel('app_settings_changes')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'app_settings', filter: 'id=eq.global' },
+        { event: '*', schema: 'public', table: 'app_settings', filter: 'id=eq.1' },
         (payload) => {
           const newData = payload.new as Record<string, any>
-          if (newData && typeof newData.is_paused === 'boolean') {
-            setIsPaused(newData.is_paused)
+          if (newData && typeof newData.maintenance_mode === 'boolean') {
+            setIsPaused(newData.maintenance_mode)
             // If it becomes paused again, lock it locally
-            if (newData.is_paused) {
+            if (newData.maintenance_mode) {
               setIsUnlocked(false)
             }
           }
@@ -84,7 +84,7 @@ export default function AdminOverlay({ children }: AdminOverlayProps) {
     const newStatus = !isPaused
     const { error } = await supabase
       .from('app_settings')
-      .upsert({ id: 'global', is_paused: newStatus })
+      .upsert({ id: 1, maintenance_mode: newStatus })
     
     if (error) {
       console.error('Error updating status:', error)
