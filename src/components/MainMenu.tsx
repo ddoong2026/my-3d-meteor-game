@@ -1,4 +1,4 @@
-export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteor' | 'hoshik' | 'temple' | 'hoshik2') => void }) {
+export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteor' | 'hoshik' | 'temple' | 'hoshik2' | 'fallguys') => void }) {
   return (
     <div style={{
       width: '100vw',
@@ -18,7 +18,7 @@ export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteo
         플레이할 게임 모드를 선택하세요
       </p>
 
-      <div style={{ display: 'flex', gap: '40px' }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '40px', maxWidth: '1200px' }}>
         <button
           onClick={() => onSelectMode('meteor')}
           style={{
@@ -141,6 +141,37 @@ export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteo
           <h2 style={{ fontSize: '2.5rem', margin: '0 0 10px 0', color: 'white' }}>호식특공대2</h2>
           <p style={{ fontSize: '1.2rem', color: '#ccc', textAlign: 'center', padding: '0 20px' }}>
             코드 실험용으로 사용하는<br/>호식특공대 복제본입니다!
+          </p>
+        </button>
+
+        <button
+          onClick={() => onSelectMode('fallguys')}
+          style={{
+            width: '300px',
+            height: '400px',
+            backgroundColor: '#4e2a4e',
+            border: '4px solid #8e4a8e',
+            borderRadius: '16px',
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            transition: 'transform 0.2s, borderColor 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.05)'
+            e.currentTarget.style.borderColor = '#ff8aff'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)'
+            e.currentTarget.style.borderColor = '#8e4a8e'
+          }}
+        >
+          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>👑</div>
+          <h2 style={{ fontSize: '2.5rem', margin: '0 0 10px 0', color: 'white' }}>폴가이즈</h2>
+          <p style={{ fontSize: '1.2rem', color: '#ccc', textAlign: 'center', padding: '0 20px' }}>
+            최후의 1인이 될 때까지<br/>살아남는 3D 멀티플레이 게임!
           </p>
         </button>
       </div>
