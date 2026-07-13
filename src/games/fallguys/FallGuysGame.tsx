@@ -3,7 +3,7 @@ import { Physics } from '@react-three/rapier'
 import { KeyboardControls, Sky, Environment } from '@react-three/drei'
 import { Suspense } from 'react'
 import * as THREE from 'three'
-import { useFallGuysStore, GameMode } from '../../store/useFallGuysStore'
+import { useFallGuysStore, type GameMode } from '../../store/useFallGuysStore'
 import FallGuysLobby from './modes/FallGuysLobby'
 
 export const keyboardMap = [
