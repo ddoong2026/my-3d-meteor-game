@@ -2,7 +2,8 @@ import { Canvas } from '@react-three/fiber'
 import { Physics } from '@react-three/rapier'
 import { KeyboardControls, Sky, Environment } from '@react-three/drei'
 import { Suspense } from 'react'
-import { useFallGuysStore } from '../../store/useFallGuysStore'
+import * as THREE from 'three'
+import { useFallGuysStore, GameMode } from '../../store/useFallGuysStore'
 import FallGuysLobby from './modes/FallGuysLobby'
 
 export const keyboardMap = [
@@ -15,7 +16,9 @@ export const keyboardMap = [
 ]
 
 export default function FallGuysGame({ onBack }: { onBack: () => void }) {
-  const currentMode = useFallGuysStore((state) => state.currentMode)
+  const { currentMode, setMode } = useFallGuysStore()
+
+  const modes: GameMode[] = ['Lobby', 'Race', 'Survival', 'Team', 'Final']
 
   return (
     <div style={{ width: '100vw', height: '100vh', position: 'relative' }}>
@@ -45,17 +48,45 @@ export default function FallGuysGame({ onBack }: { onBack: () => void }) {
         top: 20,
         right: 20,
         zIndex: 100,
-        color: 'white',
-        fontFamily: 'sans-serif',
-        fontSize: '24px',
-        fontWeight: 'bold',
-        textShadow: '2px 2px 0 #000'
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'flex-end',
+        gap: '10px'
       }}>
-        Mode: {currentMode}
+        <div style={{
+          color: 'white',
+          fontFamily: 'sans-serif',
+          fontSize: '24px',
+          fontWeight: 'bold',
+          textShadow: '2px 2px 0 #000'
+        }}>
+          Mode: {currentMode}
+        </div>
+        
+        {/* Mode Selector */}
+        <div style={{ display: 'flex', gap: '5px' }}>
+          {modes.map(m => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              style={{
+                padding: '5px 10px',
+                background: currentMode === m ? '#ff0088' : 'rgba(0,0,0,0.5)',
+                color: 'white',
+                border: '1px solid white',
+                borderRadius: '5px',
+                cursor: 'pointer',
+                fontWeight: 'bold'
+              }}
+            >
+              {m}
+            </button>
+          ))}
+        </div>
       </div>
 
       <KeyboardControls map={keyboardMap}>
-        <Canvas shadows camera={{ position: [0, 5, 10], fov: 50 }}>
+        <Canvas shadows={{ type: THREE.PCFShadowMap }} camera={{ position: [0, 5, 10], fov: 50 }}>
           <Suspense fallback={null}>
             <Sky sunPosition={[100, 20, 100]} />
             <Environment preset="city" />
@@ -69,7 +100,15 @@ export default function FallGuysGame({ onBack }: { onBack: () => void }) {
             
             <Physics debug={false}>
               {currentMode === 'Lobby' && <FallGuysLobby />}
-              {/* Other modes will be added here */}
+              {/* Add placeholders for other modes to prevent empty screen if selected */}
+              {currentMode !== 'Lobby' && (
+                 <mesh position={[0, 0, 0]}>
+                   <boxGeometry args={[20, 1, 20]} />
+                   <meshStandardMaterial color="#444" />
+                 </mesh>
+              )}
+              {currentMode !== 'Lobby' && <FallGuysLobby />} 
+              {/* Temporarily render Lobby for all modes so the player doesn't fall endlessly while I implement them */}
             </Physics>
           </Suspense>
         </Canvas>
@@ -77,3 +116,4 @@ export default function FallGuysGame({ onBack }: { onBack: () => void }) {
     </div>
   )
 }
+
