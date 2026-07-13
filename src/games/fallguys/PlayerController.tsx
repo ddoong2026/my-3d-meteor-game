@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useFrame, useThree } from '@react-three/fiber'
-import { RigidBody, RapierRigidBody, CapsuleCollider, useFixedUpdate } from '@react-three/rapier'
+import { RigidBody, RapierRigidBody, CapsuleCollider } from '@react-three/rapier'
 import { useKeyboardControls } from '@react-three/drei'
 import * as THREE from 'three'
 
@@ -20,7 +20,7 @@ export default function PlayerController() {
   const cameraTarget = useRef(new THREE.Vector3())
   const cameraPosition = useRef(new THREE.Vector3())
 
-  useFrame((state, delta) => {
+  useFrame(() => {
     if (!rigidBody.current) return
 
     const { forward, backward, left, right, jump, dive } = get()
