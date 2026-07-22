@@ -1,4 +1,4 @@
-export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteor' | 'hoshik' | 'temple' | 'hoshik2' | 'fallguys') => void }) {
+export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteor' | 'hoshik' | 'temple' | 'hoshik2' | 'fallguys' | 'soccer') => void }) {
   return (
     <div style={{
       width: '100vw',
@@ -172,6 +172,37 @@ export default function MainMenu({ onSelectMode }: { onSelectMode: (mode: 'meteo
           <h2 style={{ fontSize: '2.5rem', margin: '0 0 10px 0', color: 'white' }}>폴가이즈</h2>
           <p style={{ fontSize: '1.2rem', color: '#ccc', textAlign: 'center', padding: '0 20px' }}>
             최후의 1인이 될 때까지<br/>살아남는 3D 멀티플레이 게임!
+          </p>
+        </button>
+
+        <button
+          onClick={() => onSelectMode('soccer')}
+          style={{
+            width: '300px',
+            height: '400px',
+            backgroundColor: '#2a4e4e',
+            border: '4px solid #4a8e8e',
+            borderRadius: '16px',
+            cursor: 'pointer',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            alignItems: 'center',
+            transition: 'transform 0.2s, borderColor 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.05)'
+            e.currentTarget.style.borderColor = '#8affff'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)'
+            e.currentTarget.style.borderColor = '#4a8e8e'
+          }}
+        >
+          <div style={{ fontSize: '4rem', marginBottom: '20px' }}>⚽</div>
+          <h2 style={{ fontSize: '2.5rem', margin: '0 0 10px 0', color: 'white' }}>호식이 축구</h2>
+          <p style={{ fontSize: '1.2rem', color: '#ccc', textAlign: 'center', padding: '0 20px' }}>
+            5대 5 오버워치 루시우볼<br/>스타일의 3D 축구 게임!
           </p>
         </button>
       </div>

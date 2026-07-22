@@ -8,7 +8,8 @@ export const mobileControls = {
   move: { x: 0, y: 0 },
   jump: false,
   prevJump: false,
-  run: false
+  run: false,
+  boop: false
 }
 
 export function PlayerModel({ playerPosRef, gameOverRef, getFloorHeight, externalForceRef, onRespawn, autoForward, strafeOnly, speedMultiplier = 1, fixedCamera = false, customGravity = -0.015, customJumpForce = 0.3 }: any) {

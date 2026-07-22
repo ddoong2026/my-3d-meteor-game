@@ -5,10 +5,11 @@ import HoshikGame from './games/HoshikGame'
 import TempleGame from './games/TempleGame'
 import HoshikGame2 from './games/HoshikGame2'
 import FallGuysGame from './games/fallguys/FallGuysGame'
+import HosikSoccerGame from './games/HosikSoccerGame'
 import { soundManager } from './utils/SoundManager'
 
 export default function App() {
-  const [mode, setMode] = useState<'menu' | 'meteor' | 'hoshik' | 'temple' | 'hoshik2' | 'fallguys'>('menu')
+  const [mode, setMode] = useState<'menu' | 'meteor' | 'hoshik' | 'temple' | 'hoshik2' | 'fallguys' | 'soccer'>('menu')
 
   if (mode === 'menu') {
     return <MainMenu onSelectMode={(m) => {
@@ -35,6 +36,10 @@ export default function App() {
 
   if (mode === 'fallguys') {
     return <FallGuysGame onBack={() => setMode('menu')} />
+  }
+
+  if (mode === 'soccer') {
+    return <HosikSoccerGame onBack={() => setMode('menu')} />
   }
 
   return null
