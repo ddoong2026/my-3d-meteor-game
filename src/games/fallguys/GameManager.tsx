@@ -3,7 +3,7 @@ import { useFallGuysStore } from '../../store/useFallGuysStore'
 import { supabase } from '../../utils/supabase'
 
 export default function GameManager() {
-  const { gameState, setGameState, countdownTime, setCountdownTime, currentMode, setMode } = useFallGuysStore()
+
   const channelRef = useRef<any>(null)
 
   // Game Loop State Machine
